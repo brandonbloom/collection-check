@@ -1,13 +1,13 @@
 Clojure's default data structures are great, but sometimes the problems we're trying to solve call for something else.  However, alternate data structures should still behave as much as possible like vectors, sets, or maps.
 
-This library tests whether a given data structure is equivalent to whatever data structure it mimics, using [simple-check](https://github.com/reiddraper/simple-check).  This is both a validation that the data structure is correct and that it implements all necessary interfaces.
+This library tests whether a given data structure is equivalent to whatever data structure it mimics, using [test.check](https://github.com/clojure/test.check).  This is both a validation that the data structure is correct and that it implements all necessary interfaces.
 
 ### usage
 
 Since this is only for testing, it should be added as a `:dev` dependency:
 
 ```clj
-{:profiles {:dev {:dependencies [[collection-check "0.1.3"]]}}}
+{:profiles {:dev {:dependencies [[collection-check "0.1.4"]]}}}
 ```
 
 To validate a vector-like data structure, you can use `(assert-vector-like empty-collection element-generator)`.  For instance:
@@ -15,14 +15,14 @@ To validate a vector-like data structure, you can use `(assert-vector-like empty
 ```clj
 > (require '[collection-check :refer :all])
 nil
-> (assert-vector-like [] simple-check.generators/int)
+> (assert-vector-like [] clojure.test.check.generators/int)
 true
 ```
 
 We can also specify the number of tests we'd like to perform, which defaults to `1000`:
 
 ```clj
-> (assert-vector-like 1e5 [] simple-check.generators/int)
+> (assert-vector-like 1e5 [] clojure.test.check.generators/int)
 true
 ```
 

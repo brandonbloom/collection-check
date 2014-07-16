@@ -3,9 +3,9 @@
     [clojure.pprint])
   (:require
     [clojure.string :as str]
-    [simple-check.generators :as gen]
-    [simple-check.properties :as prop]
-    [simple-check.core :refer (quick-check)])
+    [clojure.test.check.generators :as gen]
+    [clojure.test.check.properties :as prop]
+    [clojure.test.check :refer (quick-check)])
   (:import
     [java.util Collection List Map]))
 
