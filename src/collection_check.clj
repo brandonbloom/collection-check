@@ -129,7 +129,7 @@
 
 (defn assert-equivalent-collections
   [a b]
-  (assert (= (count a) (count b) (.size a) (.size b)))
+  (assert (= (count a) (count b) (.size ^Collection a) (.size ^Collection b)))
   (assert (= a b))
   (assert (= b a))
   (assert (.equals ^Object a b))
