@@ -192,44 +192,47 @@
 (defn- meta-map [s]
   (->> s (map #(vector % (meta %))) (into {})))
 
-(defn assert-equivalent-vectors [a b]
+(defn assert-equivalent-vectors [a b {:keys [call?]}]
   (assert-equivalent-collections a b)
   (is (= (first a) (first b)))
   (is (= (map #(nth a %) (range (count a)))
             (map #(nth b %) (range (count b)))))
-  (is (= (map #(a %) (range (count a)))
-            (map #(b %) (range (count b)))))
+  (when call?
+    (is (= (map #(a %) (range (count a)))
+              (map #(b %) (range (count b))))))
   (is (= (map #(get a %) (range (count a)))
             (map #(get b %) (range (count b)))))
   (is (= (map #(.get ^List a %) (range (count a)))
             (map #(.get ^List b %) (range (count b)))))
   (is (= 0 (compare a b))))
 
-(defn assert-equivalent-sets [a b]
+(defn assert-equivalent-sets [a b {:keys [call?]}]
   (assert-equivalent-collections a b)
-  (is (= (set (map #(a %) a))
-            (set (map #(b %) b))))
+  (when call?
+    (is (= (set (map #(a %) a))
+              (set (map #(b %) b)))))
   (is (= (meta-map a) (meta-map b)))
   (is (and
             (every? #(contains? a %) b)
             (every? #(contains? b %) a))))
 
-(defn assert-equivalent-maps [a b]
+(defn assert-equivalent-maps [a b {:keys [call?]}]
   (assert-equivalent-collections a b)
   (is (= (set (keys a)) (set (keys b))))
   (let [ks (keys a)]
     (is (= (map #(get a %) ks)
               (map #(get b %) ks)))
-    (is (= (map #(a %) ks)
-              (map #(b %) ks)))
+    (when call?
+      (is (= (map #(a %) ks)
+                (map #(b %) ks))))
     (is (= (map #(.get ^Map a %) ks)
               (map #(.get ^Map b %) ks))))
   (is (and
             (every? #(= (key %) (first %)) a)
             (every? #(= (key %) (first %)) b)))
   (is (= (meta-map (keys a)) (meta-map (keys b))))
-  (is (every? #(= (meta (a %)) (meta (b %))) (keys a)))
-  (is (every? #(= (val %) (a (key %)) (b (key %))) a)))
+  (is (every? #(= (meta (get a %)) (meta (get b %))) (keys a)))
+  (is (every? #(= (val %) (get a (key %)) (get b (key %))) a)))
 
 ;;;
 
@@ -268,14 +271,15 @@
   ([n empty-coll element-generator]
      (assert-vector-like n empty-coll element-generator nil))
   ([n empty-coll element-generator
-    {:keys [base ordered?]
+    {:keys [base ordered? call?]
      :or {ordered? true
-          base []}}]
+          base []
+          call? true}}]
        (reporting-failing-actions
          (chuck/checking "vector-like" n
            [actions (gen-vector-actions element-generator (transient? empty-coll) ordered?)]
            (let [[a b actions] (build-collections empty-coll base true actions)]
-             (assert-equivalent-vectors a b))))))
+             (assert-equivalent-vectors a b {:call? call?}))))))
 
 (defn assert-set-like
   ([empty-coll element-generator]
@@ -283,14 +287,15 @@
   ([n empty-coll element-generator]
      (assert-set-like n empty-coll element-generator nil))
   ([n empty-coll element-generator
-    {:keys [base ordered?]
+    {:keys [base ordered? call?]
      :or {ordered? false
-          base #{}}}]
+          base #{}
+          call? true}}]
      (reporting-failing-actions
        (chuck/checking "set-like" n
          [actions (gen-set-actions element-generator (transient? empty-coll) ordered?)]
          (let [[a b actions] (build-collections empty-coll base false actions)]
-           (assert-equivalent-sets a b))))))
+           (assert-equivalent-sets a b {:call? call?}))))))
 
 (defn assert-map-like
   ([empty-coll key-generator value-generator]
@@ -298,11 +303,12 @@
   ([n empty-coll key-generator value-generator]
      (assert-map-like n empty-coll key-generator value-generator nil))
   ([n empty-coll key-generator value-generator
-    {:keys [base ordered?]
+    {:keys [base ordered? call?]
      :or {ordered? false
-          base {}}}]
+          base {}
+          call? true}}]
      (reporting-failing-actions
        (chuck/checking "map-like" n
          [actions (gen-map-actions key-generator value-generator (transient? empty-coll) ordered?)]
          (let [[a b actions] (build-collections empty-coll base false actions)]
-           (assert-equivalent-maps a b))))))
+           (assert-equivalent-maps a b {:call? call?}))))))
